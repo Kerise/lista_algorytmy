@@ -1,0 +1,376 @@
+#include <iostream>
+#include <time.h>
+#include <chrono>
+#include <ctime>
+
+using namespace std;
+
+template<typename T>
+class Ksiazka
+{
+public:
+    T data;
+    Ksiazka* next=NULL;
+    Ksiazka* prev=NULL;
+    Ksiazka(T d)
+    {
+        this->data=d;
+        this->prev=NULL;
+        this->next=NULL;
+    }
+};
+template<typename T>
+class List
+{
+public:
+    Ksiazka<T>* head=NULL;
+    Ksiazka<T>* tail=NULL;
+    int counter=0;
+    Ksiazka<T>*getPosition(unsigned int pos)
+    {
+        if(pos<1||pos>counter) return NULL;
+        if(pos<counter-pos)
+        {
+            Ksiazka<T>*temp=tail;
+            int i=1;
+            while(i<pos)
+            {
+                temp=temp->next;
+                i++;
+            }
+            return temp;
+        }
+        else
+        {
+            Ksiazka<T>*temp=head;
+            int i=counter;
+            while(i>pos)
+            {
+                temp=temp->prev;
+                i--;
+            }
+            return temp;
+        }
+    }
+    void addP(T data)
+    {
+        Ksiazka<T>*nowa=new Ksiazka<T>(data);
+        if(counter==0){
+            head=tail=nowa;
+        }
+        else
+        {
+        tail->prev=nowa;
+        nowa->next=tail;
+        tail=nowa;
+        }
+        counter++;
+    }
+    void addK(T data)
+    {
+        Ksiazka<T>*nowa=new Ksiazka<T>(data);
+        if(counter==0){
+            head=tail=nowa;
+        }
+        else
+        {
+            head->next=nowa;
+            nowa->prev=head;
+            head=nowa;
+        }
+        counter++;
+    }
+    void add(T data,int pos)
+    {
+         Ksiazka<T>*nowa=new Ksiazka<T>(data);
+        if(pos==1)
+        {
+            T a=data;
+            addP(a);
+        }
+
+         else if(counter==0)
+         {
+             head=tail=nowa;
+             counter++;
+         }
+         else if(pos>counter)
+         {
+             T a=data;
+             addK(data);
+         }
+         else
+         {
+             Ksiazka<T>*temp=getPosition(pos);
+             Ksiazka<T>*before=getPosition(pos-1);
+             before->next=nowa;
+             nowa->prev=before;
+             nowa->next=temp;
+             temp->prev=nowa;
+             counter++;
+         }
+    }
+    void show()
+    {
+        if(counter<=0)
+        {
+            cout<<"Lista jest pusta"<<endl;
+        }
+        else{
+        Ksiazka<T>* temp=tail;
+        int i=1;
+        while(temp!=NULL)
+        {
+        cout<<i<<"."<<temp->data<<endl;
+        temp=temp->next;
+        i++;
+        }
+        }
+        cout<<"\n\n\n";
+    }
+    void del(int pos)
+    {
+        if(counter==0)
+        {
+            cout<<"Nie ma czego usowac!"<<endl;
+        }
+        else if(pos==1)
+        {
+          delP();
+        }
+        else if(pos==counter)
+        {
+            delK();
+        }
+        else
+        {
+            Ksiazka<T>*poprzedni=getPosition(pos-1);
+            Ksiazka<T>*nastepny=getPosition(pos+1);
+            Ksiazka<T>*temp=getPosition(pos);
+            poprzedni->next=nastepny;
+            nastepny->prev=poprzedni;
+            delete temp;
+
+        }
+    }
+    void delP()
+    {
+         Ksiazka<T>*temp=tail;
+            tail=tail->next;
+            tail->prev=NULL;
+            delete temp;
+            counter--;
+    }
+    void delK()
+    {
+      Ksiazka<T>*temp=head;
+            head=head->prev;
+            head->next=NULL;
+            delete temp;
+            counter--;
+    }
+    void delALL()
+    {
+    while(counter>0)
+    {
+       if(counter=1){
+       Ksiazka<T>*temp=getPosition(counter);
+       temp->next=NULL;
+       temp->prev=NULL;
+       delete temp;
+       counter=0;
+       }
+       else
+       {
+       del(counter);
+       }
+    }
+    }
+    T view(int pos)
+    {
+
+        if(pos>0&&pos<counter){
+        Ksiazka<T>*temp=getPosition(pos);
+        cout<<"Ksiazka nr:"<<pos<<endl<<temp->data;
+        T z=temp->data;
+        return z;
+    }
+    else
+    {
+        cout<<"Nie ma takiego nr na liscie"<<endl;
+        return NULL;
+    }
+    }
+    void change(int pos,T data)
+    {
+        if(pos>0&&pos<counter){
+        Ksiazka<T>*temp=getPosition(pos);
+        temp->data=data;
+        }
+        else
+        {
+            cout<<"Nie ma takiego nr na liscie"<<endl;
+        }
+    }
+    void add_ordered(T data,int (*cmp)(T,T))
+    {
+        Ksiazka<T>*nowa=new Ksiazka<T>(data);
+        Ksiazka<T>*temp=tail;
+        if(counter==0)
+        {
+            return addP(data);
+        }
+        while(temp!=NULL)
+        {
+
+            if(cmp(data,temp->data)<=0)
+            {
+                if(temp->prev!=NULL)
+                {
+                    temp->prev->next=nowa;
+                    nowa->prev=temp->prev;
+                    nowa->next=temp;
+                    temp->prev=nowa;
+                    counter++;
+                    return;
+                }
+                addP(data);
+                counter ++;
+                return;
+            }
+            temp=temp->next;
+        }
+    addK(data);
+    }
+Ksiazka<T>*Find_element(T keyword,int (*cmp)(T,T))
+{
+    int i=1;
+    if(counter==0)
+    {
+        cout<<"Brak elementow na liscie"<<endl;
+        return NULL;
+    }
+    Ksiazka<T>*temp=tail;
+    while(temp!=NULL)
+    {
+        if(cmp(keyword,temp->data)==0)
+        {
+        return getPosition(i);
+        }
+        else
+        {
+            temp=temp->next;
+            i++;
+        }
+    }
+    cout<<"nie ma takiego elementu na liscie"<<endl;
+    return NULL;
+}
+void Find_and_del(T keyword,int (*cmp)(T,T))
+{
+    Ksiazka<T>*temp=tail;
+    int i=1;
+    if(counter==0)
+    {
+        cout<<"Brak elementow na liscie"<<endl;
+        return ;
+    }
+
+    while(temp!=NULL)
+    {
+        if(cmp(keyword,temp->data)==0)
+        {
+        del(i);
+        return;
+        }
+            temp=temp->next;
+            i++;
+    }
+    cout<<"nie ma takiego elementu na liscie"<<endl;
+    return;
+}
+
+};
+int cmp(string k1,string k2)
+    {
+        return k1.compare(k2);
+    }
+int main()
+{
+    List<string>*nowaLista=new List<string>();
+    srand(time (NULL));
+   // clock_t start,stop;
+    double time;
+    string r;
+
+    cout<<r;
+    //start=clock();
+    auto start=std::chrono::system_clock::now();
+
+    for(int i=0;i<10000;i++){
+      for(int i=0;i<10;i++)
+    {
+        string los;
+        los=((rand()%('z'-'a'))+'a');
+        r=r+los;
+    }
+    nowaLista->add_ordered(r,cmp);
+    r="";
+    }
+    //stop=clock();
+    //time=(double)(stop-start)/CLOCKS_PER_SEC;
+    auto stop=chrono::system_clock::now();
+    chrono::duration<double> elapsed_seconds=stop-start;
+    time_t end_time=chrono::system_clock::to_time_t(stop);
+
+    cout<<"Czas dodawania 10000 elementow add_ordered:"<<elapsed_seconds.count()<<"s"<<endl;
+
+    nowaLista->delALL();
+    start=std::chrono::system_clock::now();
+
+    for(int i=0;i<10000;i++){
+      for(int i=0;i<10;i++)
+    {
+        string los;
+        los=((rand()%('z'-'a'))+'a');
+        r=r+los;
+    }
+    nowaLista->addP(r);
+    r="";
+    }
+    stop=chrono::system_clock::now();
+    elapsed_seconds=stop-start;
+    end_time=chrono::system_clock::to_time_t(stop);
+
+    cout<<"Czas dodawania 10000 elementow addP:"<<elapsed_seconds.count()<<"s"<<endl;
+
+    nowaLista->add("aaaaaaaaaa",9100);
+    start=std::chrono::system_clock::now();
+    cout<<"Wskaznik na szukany element:"<<nowaLista->Find_element("aaaaaaaaaa",cmp)<<endl;
+
+
+    stop=chrono::system_clock::now();
+    elapsed_seconds=stop-start;
+    end_time=chrono::system_clock::to_time_t(stop);
+
+    cout<<"Czas wyszukiwania w 10000 elementow :"<<elapsed_seconds.count()<<"s"<<endl;
+
+    start=std::chrono::system_clock::now();
+    nowaLista->change(489,"hahahhahaha");
+    stop=chrono::system_clock::now();
+    elapsed_seconds=stop-start;
+    end_time=chrono::system_clock::to_time_t(stop);
+
+    cout<<"Czas zamieniania elementu w 10000 elementach :"<<elapsed_seconds.count()<<"s"<<endl;
+
+    start=std::chrono::system_clock::now();
+    cout<<nowaLista->view(6666)<<endl;
+    stop=chrono::system_clock::now();
+    elapsed_seconds=stop-start;
+    end_time=chrono::system_clock::to_time_t(stop);
+
+    cout<<"Czas wypisywania 6666 elementu :"<<elapsed_seconds.count()<<"s"<<endl;
+
+
+    return 0;
+}
